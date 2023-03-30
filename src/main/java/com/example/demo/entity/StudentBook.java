@@ -1,8 +1,9 @@
 package com.example.demo.entity;
 
+import com.example.demo.enums.Status;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.enums.Status;
+
 
 import javax.persistence.*;
 import java.time.LocalDate;

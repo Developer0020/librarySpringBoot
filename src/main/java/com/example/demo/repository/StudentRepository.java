@@ -1,17 +1,14 @@
 package com.example.demo.repository;
 
 
-import org.example.entity.Student;
+import com.example.demo.dto.StudentDTO;
+import com.example.demo.entity.Student;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.boot.Metadata;
-import org.hibernate.boot.MetadataSources;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,43 +16,44 @@ import java.util.List;
 @Repository
 public class StudentRepository {
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private SessionFactory sessionFactory;
 
-    public void addStudent(Student student) {
-//        String sql = "insert into student (name,surname,phone,createddate,visible) values ('%s','%s','%s',now(),'%s')";
-//        sql = String.format(sql, student.getName(), student.getSurname(), student.getPhone(), true);
-//        int b = jdbcTemplate.update(sql);
-//        if (b > 0) {
-//            System.out.println("Success !");
-//        }
-        StandardServiceRegistry ssr = new StandardServiceRegistryBuilder().configure("hibernate.cfg.xml").build();
-        Metadata meta = new MetadataSources(ssr).getMetadataBuilder().build();
-        SessionFactory factory = meta.getSessionFactoryBuilder().build();
-        Session session = factory.openSession();
+    public void addStudent(StudentDTO studentDTO) {
+        Session session = sessionFactory.openSession();
         Transaction transaction = session.beginTransaction();
-        session.save(student);
-        factory.close();
+        session.save(studentDTO);
+        transaction.commit();
+        sessionFactory.close();
         session.close();
     }
 
     public List<Student> studentList() {
-        String sql = "Select * from student ";
-        List<Student> studentList = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(Student.class));
-        return studentList;
-    }
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        Query<Student> student = session.createQuery("from Student ", Student.class);
 
-    public Student getStudentByPhone(String phone) {
-        String sql = "select * from student where  phone ='%s'";
-        sql = String.format(sql, phone);
-        return jdbcTemplate.queryForObject(sql, new BeanPropertyRowMapper<>(Student.class));
+        transaction.commit();
+        session.close();
+        return student.getResultList();
 
     }
 
-    public void deleteStudent(Integer id, boolean visible) {
-        String sql = String.format("update student set visible ='%s' where id ='%s'", visible, id);
-        int rowsAffected = jdbcTemplate.update(sql);
-        if (rowsAffected > 0) {
-            System.out.println("Success !!!");
-        }
+    public Student getStudent(Integer id) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+
+        Student student = session.find(Student.class, id);
+        transaction.commit();
+        session.close();
+        return student;
+    }
+
+    public void deleteStudent(Student student) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+
+        session.update(student);
+        transaction.commit();
+        session.close();
     }
 }

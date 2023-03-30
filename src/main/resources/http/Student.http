@@ -1,0 +1,10 @@
+### Student List
+GET localhost:8081/AdminController/studentList
+
+### Add Student
+POST localhost:8081/AdminController/addStudent
+Content-Type: application/json
+
+{
+}
+

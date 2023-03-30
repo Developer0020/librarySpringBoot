@@ -1,52 +1,56 @@
 package com.example.demo.repository;
 
-import org.example.entity.StudentBook;
-import org.example.enums.Status;
+
+import com.example.demo.entity.StudentBook;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-import static java.time.LocalTime.now;
-
 @Repository
 public class StudentBookRepository {
     @Autowired
-    private JdbcTemplate jdbcTemplate;
-    @Autowired
-    private BookRepository bookRepository;
+    private SessionFactory sessionFactory;
+
     public void takeBook(StudentBook studentBook) {
-        String sql = "Insert into studentBook(student_id,book_id,createdDate,status) values ('%s','%s',now(),'%s')";
-        sql = String.format(sql, studentBook.getStudent_id(), studentBook.getBook_id(),studentBook.getStatus());
-        int n = jdbcTemplate.update(sql);
-        if (n > 0) {
-            System.out.println("Success !");
-            bookRepository.updateBook
-                    (String.valueOf(Integer.valueOf(bookRepository.getBookById(studentBook.getBook_id()).getAmount()) - 1),studentBook.getBook_id());
-        }
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        session.save(studentBook);
+
+        transaction.commit();
+        session.close();
     }
-    public StudentBook studentBook(Integer book_id, Integer student_id) {
-        String sql = "Select * from studentBook where book_id = '%s' and student_id ='%s'";
-        sql = String.format(sql, book_id, student_id);
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(StudentBook.class)).get(0);
+
+    public StudentBook getstudentBook(Integer id) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        StudentBook studentBook = session.find(StudentBook.class,id);
+
+        transaction.commit();
+        session.close();
+        return studentBook;
     }
-    public List<StudentBook> studentBookListByStudentId(Integer student_id) {
-        String sql = "Select * from studentBook where student_id = '%s'";
-        sql = String.format(sql, student_id);
-        return jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(StudentBook.class));
+
+    public List<StudentBook> studentBookListByStudentId(Integer id) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        Query<StudentBook> studentBook= session.createQuery("from StudentBook where id=id ", StudentBook.class);
+
+        transaction.commit();
+        session.close();
+        return studentBook.getResultList();
     }
-    public List<StudentBook> studentBookList() {
-        return jdbcTemplate.query("Select * from studentBook ", new BeanPropertyRowMapper<>(StudentBook.class));
-    }
-    public void returnedBook(Integer book_id, Integer student_id, String duration) {
-        String sql = "update studentBook set status = '%s',returneddate=date(now()),duration='%s' where  book_id='%s' and student_id='%s'  ";
-        sql = String.format(sql, Status.RETURNED.name(), duration, book_id, student_id);
-        int effectedRows = jdbcTemplate.update(sql);
-        if (effectedRows > 0) {
-            System.out.println("Success !");
-            bookRepository.updateBook(String.valueOf(Integer.valueOf(bookRepository.getBookById(book_id).getAmount()) + 1),book_id);
-        }
+
+    public void update(StudentBook studentBook){
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+
+        session.update(studentBook);
+        transaction.commit();
+        session.close();
     }
 }

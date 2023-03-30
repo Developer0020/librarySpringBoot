@@ -1,0 +1,19 @@
+### Book List
+GET localhost:8081/AdminController/bookList
+
+### Add Book
+POST localhost:8081/AdminController/addBook
+Content-Type: application/json
+
+{
+  "title": "qora tarix",
+  "author": "Bobir Baxshilloyev",
+  "amount": 30,
+  "visible": true
+}
+
+### Take Book
+GET localhost:8081/UserController/takeBook
+
+### Taken Book
+GET localhost:8081/UserController/takenBook
